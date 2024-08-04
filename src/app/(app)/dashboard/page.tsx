@@ -114,16 +114,6 @@ function UserDashboard() {
     }
   };
 
-  const copyToClipboard = () => {
-    if (navigator && navigator.clipboard) {
-      navigator.clipboard.writeText(profileUrl);
-      toast({
-        title: "URL Copied!",
-        description: "Profile URL has been copied to clipboard.",
-      });
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputUsername(e.target.value);
   };
@@ -138,7 +128,7 @@ function UserDashboard() {
   };
 
   if (!session || !session.user) {
-    return <div><span>Gest</span></div>;
+    return <div></div>;
   }
 
   return (
