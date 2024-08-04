@@ -1,7 +1,8 @@
 "use client";
+
 import { cn } from "@/lib/utils";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useCallback } from "react";
 import * as THREE from "three";
 
 export const CanvasRevealEffect = ({
@@ -65,7 +66,7 @@ const DotMatrix: React.FC<DotMatrixProps> = ({
   shader = "",
   center = ["x", "y"],
 }) => {
-  const uniforms = React.useMemo(() => {
+  const getUniforms = useCallback(() => {
     let colorsArray = [
       colors[0],
       colors[0],
@@ -169,7 +170,7 @@ const DotMatrix: React.FC<DotMatrixProps> = ({
       fragColor = vec4(color, opacity);
       fragColor.rgb *= fragColor.a;
         }`}
-      uniforms={uniforms}
+      uniforms={getUniforms()}
       maxFps={60}
     />
   );
@@ -181,6 +182,7 @@ type Uniforms = {
     type: string;
   };
 };
+
 const ShaderMaterial = ({
   source,
   uniforms,
@@ -192,7 +194,7 @@ const ShaderMaterial = ({
   uniforms: Uniforms;
 }) => {
   const { size } = useThree();
-  const ref = useRef<THREE.Mesh>();
+  const ref = useRef<THREE.Mesh>(null);
   let lastFrameTime = 0;
 
   useFrame(({ clock }) => {
@@ -208,7 +210,7 @@ const ShaderMaterial = ({
     timeLocation.value = timestamp;
   });
 
-  const getUniforms = () => {
+  const getUniforms = useCallback(() => {
     const preparedUniforms: any = {};
 
     for (const uniformName in uniforms) {
@@ -252,11 +254,10 @@ const ShaderMaterial = ({
       value: new THREE.Vector2(size.width * 2, size.height * 2),
     }; // Initialize u_resolution
     return preparedUniforms;
-  };
+  }, [uniforms, size.width, size.height]);
 
-  // Shader material
   const material = useMemo(() => {
-    const materialObject = new THREE.ShaderMaterial({
+    const shaderMaterial = new THREE.ShaderMaterial({
       vertexShader: `
       precision mediump float;
       in vec2 coordinates;
@@ -278,11 +279,11 @@ const ShaderMaterial = ({
       blendDst: THREE.OneFactor,
     });
 
-    return materialObject;
-  }, [size.width, size.height, source]);
+    return shaderMaterial;
+  }, [getUniforms, source]);
 
   return (
-    <mesh ref={ref as any}>
+    <mesh ref={ref}>
       <planeGeometry args={[2, 2]} />
       <primitive object={material} attach="material" />
     </mesh>
@@ -291,11 +292,12 @@ const ShaderMaterial = ({
 
 const Shader: React.FC<ShaderProps> = ({ source, uniforms, maxFps = 60 }) => {
   return (
-    <Canvas className="absolute inset-0  h-full w-full">
+    <Canvas className="absolute inset-0 h-full w-full">
       <ShaderMaterial source={source} uniforms={uniforms} maxFps={maxFps} />
     </Canvas>
   );
 };
+
 interface ShaderProps {
   source: string;
   uniforms: {
@@ -306,3 +308,5 @@ interface ShaderProps {
   };
   maxFps?: number;
 }
+
+export default CanvasRevealEffect;

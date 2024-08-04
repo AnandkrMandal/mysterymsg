@@ -1,12 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  RefObject,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, RefObject, useCallback } from "react";
 
 interface StarProps {
   x: number;
@@ -16,13 +10,7 @@ interface StarProps {
   twinkleSpeed: number | null;
 }
 
-export const Star: React.FC<StarProps> = ({
-  x,
-  y,
-  radius,
-  opacity,
-  twinkleSpeed,
-}) => (
+const Star: React.FC<StarProps> = ({ x, y, radius, opacity, twinkleSpeed }) => (
   <circle cx={x} cy={y} r={radius} fill="white" opacity={opacity}>
     {twinkleSpeed !== null && (
       <animate
@@ -44,7 +32,7 @@ interface StarsBackgroundProps {
   className?: string;
 }
 
-export const StarsBackground: React.FC<StarsBackgroundProps> = ({
+const StarsBackground: React.FC<StarsBackgroundProps> = ({
   starDensity = 0.00015,
   allStarsTwinkle = true,
   twinkleProbability = 0.7,
@@ -84,9 +72,10 @@ export const StarsBackground: React.FC<StarsBackgroundProps> = ({
   );
 
   useEffect(() => {
+    const container = containerRef.current;
     const updateStars = () => {
-      if (containerRef.current) {
-        const { width, height } = containerRef.current.getBoundingClientRect();
+      if (container) {
+        const { width, height } = container.getBoundingClientRect();
         setStars(generateStars(width, height));
       }
     };
@@ -94,23 +83,16 @@ export const StarsBackground: React.FC<StarsBackgroundProps> = ({
     updateStars();
 
     const resizeObserver = new ResizeObserver(updateStars);
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
+    if (container) {
+      resizeObserver.observe(container);
     }
 
     return () => {
-      if (containerRef.current) {
-        resizeObserver.unobserve(containerRef.current);
+      if (container) {
+        resizeObserver.unobserve(container);
       }
     };
-  }, [
-    starDensity,
-    allStarsTwinkle,
-    twinkleProbability,
-    minTwinkleSpeed,
-    maxTwinkleSpeed,
-    generateStars,
-  ]);
+  }, [generateStars]);
 
   return (
     <div
@@ -126,3 +108,5 @@ export const StarsBackground: React.FC<StarsBackgroundProps> = ({
     </div>
   );
 };
+
+export {StarsBackground}

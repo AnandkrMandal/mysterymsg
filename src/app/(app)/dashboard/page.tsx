@@ -17,21 +17,15 @@ import { useForm } from "react-hook-form";
 import { AcceptMessageSchema } from "@/schemas/acceptMessageSchema";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 
-
 function UserDashboard() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSwitchLoading, setIsSwitchLoading] = useState(false);
-  const [inputUsername, setinputUsername] = useState("");
+  const [inputUsername, setInputUsername] = useState("");
+  const [profileUrl, setProfileUrl] = useState("");
 
   const { toast } = useToast();
-
-  const handleDeleteMessage = (messageId: string) => {
-    setMessages(messages.filter((message) => message._id !== messageId));
-  };
-
   const { data: session } = useSession();
-
   const form = useForm({
     resolver: zodResolver(AcceptMessageSchema),
   });
@@ -87,16 +81,17 @@ function UserDashboard() {
     [setIsLoading, setMessages, toast]
   );
 
-  // Fetch initial state from the server
   useEffect(() => {
-    if (!session || !session.user) return;
+    if (session && session.user) {
+      fetchMessages();
+      fetchAcceptMessages();
 
-    fetchMessages();
-
-    fetchAcceptMessages();
+      const username = (session.user as User).username;
+      const baseUrl = `${window.location.protocol}//${window.location.host}`;
+      setProfileUrl(`${baseUrl}/u/${username}`);
+    }
   }, [session, setValue, toast, fetchAcceptMessages, fetchMessages]);
 
-  // Handle switch change
   const handleSwitchChange = async () => {
     try {
       const response = await axios.post<ApiResponse>("/api/accept-messages", {
@@ -119,35 +114,36 @@ function UserDashboard() {
     }
   };
 
-  if (!session || !session.user) {
-    return <div></div>;
-  }
-
-  const { username } = session.user as User;
-
-  const baseUrl = `${window.location.protocol}//${window.location.host}`;
-  const profileUrl = `${baseUrl}/u/${username}`;
-
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(profileUrl);
-    toast({
-      title: "URL Copied!",
-      description: "Profile URL has been copied to clipboard.",
-    });
+    if (navigator && navigator.clipboard) {
+      navigator.clipboard.writeText(profileUrl);
+      toast({
+        title: "URL Copied!",
+        description: "Profile URL has been copied to clipboard.",
+      });
+    }
   };
 
-  const handleInputChange = (e:any) => {
-    setinputUsername(e.target.value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputUsername(e.target.value);
   };
 
   const SendMessage = () => {
-    const fullUrl = `${baseUrl}/u/${inputUsername}`;
+    const fullUrl = `${profileUrl}/${inputUsername}`;
     window.open(fullUrl, "_blank");
   };
 
+  const handleDeleteMessage = (messageId: string) => {
+    setMessages(messages.filter((message) => message._id !== messageId));
+  };
+
+  if (!session || !session.user) {
+    return <div><span>Gest</span></div>;
+  }
+
   return (
-    <div className="bg-slate-800  w-full h-screen">
-      <div className="my-8 px-4  md:px-8 lg:mx-auto p-6  rounded w-full max-w-6xl">
+    <div className="bg-slate-800 w-full h-screen">
+      <div className="my-8 px-4 md:px-8 lg:mx-auto p-6 rounded w-full max-w-6xl">
         <h1 className="text-2xl sm:text-2xl md:text-2xl lg:text-4xl font-bold mb-4 text-white">User Dashboard</h1>
         <div className="mb-4">
           <h2 className="text-base mb-2 text-white">
@@ -157,21 +153,21 @@ function UserDashboard() {
             <input
               type="text"
               placeholder="username"
-              className="input input-bordered w-full p-2 mr-2 "
+              className="input input-bordered w-full p-2 mr-2"
               value={inputUsername}
               onChange={handleInputChange}
               required
             />
             <Button
               onClick={SendMessage}
-              className="bg-cyan-300 text-black hover:hover:bg-cyan-700"
+              className="bg-cyan-300 text-black hover:bg-cyan-700"
             >
-              open
+              Open
             </Button>
           </div>
         </div>
 
-        <div className="mb-4 ">
+        <div className="mb-4">
           <Switch
             {...register("acceptMessages")}
             checked={acceptMessages}
@@ -201,16 +197,13 @@ function UserDashboard() {
         </Button>
         <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
           {messages.length > 0 ? (
-            messages.map((message:any, index) => (
-              <div>
-                <BackgroundGradient className="rounded-[22px]  p-3 sm:p-3 bg-slate-500 dark:bg-zinc-900">
-                  <MessageCard
-                    key={message._id}
-                    message={message}
-                    onMessageDelete={handleDeleteMessage}
-                  />
-                </BackgroundGradient>
-              </div>
+            messages.map((message) => (
+              <BackgroundGradient key={message._id} className="rounded-[22px] p-3 sm:p-3 bg-slate-500 dark:bg-zinc-900">
+                <MessageCard
+                  message={message}
+                  onMessageDelete={handleDeleteMessage}
+                />
+              </BackgroundGradient>
             ))
           ) : (
             <p className="text-white">No messages to display.</p>

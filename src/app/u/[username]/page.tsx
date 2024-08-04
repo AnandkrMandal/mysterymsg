@@ -26,7 +26,7 @@ import { useParams } from "next/navigation";
 import { messageSchema } from "@/schemas/messageSchema";
 import { NeonGradientCard } from "@/components/magicui/neon-gradient-card";
 import { ShootingStars } from "@/components/ui/shooting-stars";
-import { StarsBackground } from "@/components/ui/stars-background";
+import {StarsBackground} from '@/components/ui/stars-background';
 import ShimmerButton from "@/components/magicui/shimmer-button";
 import { ConfettiButton } from "@/components/magicui/confetti";
 import { BorderBeam } from "@/components/magicui/border-beam";
