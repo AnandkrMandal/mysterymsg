@@ -119,7 +119,7 @@ function UserDashboard() {
   };
 
   const SendMessage = () => {
-    const fullUrl = `${profileUrl}/${inputUsername}`;
+    const fullUrl = `/u/${inputUsername}`;
     window.open(fullUrl, "_blank");
   };
 
